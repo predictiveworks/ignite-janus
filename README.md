@@ -4,3 +4,5 @@
 *Apache Ignite* is an in-memory computing platform for transactional, analytical, and streaming workloads delivering in-memory speeds at petabyte scale. More on [ignite.apache.org](https://ignite.apache.org)
 
 This project transforms JanusGraph into a distributed in-memory graph database at petabyte scale.
+
+The current version is 0.4.0 and compliant with JanusGraph 0.4.0.
