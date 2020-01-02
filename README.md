@@ -1,2 +1,2 @@
-# ignite-janus
-Apache Ignite Storage Backend for JanusGraph
+# Apache Ignite Storage Backend for JanusGraph
+*JanusGraph* is a scalable graph database optimized for storing and querying graphs containing hundreds of billions of vertices and edges distributed across a multi-machine cluster. JanusGraph is a transactional database that can support thousands of concurrent users executing complex graph traversals in real time. More on [janusgraph.org!](https:/janusgraph.org)
