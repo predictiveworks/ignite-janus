@@ -1,6 +1,6 @@
-package de.kp.works;
+package de.kp.works.janus;
 /*
- * Copyright (c) 2019 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import de.kp.works.ignite.IgniteClient;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.binary.BinaryObject;
 import org.janusgraph.diskstorage.BackendException;
@@ -56,16 +57,15 @@ public class IgniteStore implements KeyColumnValueStore {
 		this.igniteClient = client;
 	
 	}
-
 	/**
 	 * 
 	 *  Remove all entries from the Ignite cache; this is achieved
-	 *  by leveraging the 'clear' method of Apache Ignize
+	 *  by leveraging the 'clear' method of Apache Ignite
 	 */
     public void clear() {
     	
-    		if (this.cache == null) return;
-    		this.cache.clear();
+		if (this.cache == null) return;
+		this.cache.clear();
     		
     }
 
@@ -75,7 +75,7 @@ public class IgniteStore implements KeyColumnValueStore {
 	}
 
 	@Override
-	public void close() throws BackendException {
+	public void close() {
 	}
 
     /**
@@ -83,17 +83,16 @@ public class IgniteStore implements KeyColumnValueStore {
      * that are actually assigned to a certain row key
      */
 	@Override
-	public EntryList getSlice(KeySliceQuery query, StoreTransaction txh) throws BackendException {
+	public EntryList getSlice(KeySliceQuery query, StoreTransaction txh) {
 		return getKeysRangeQuery(query.getKey(), query, txh);
 	}
 	
 	/********** getSlice support **********/
 	
 	private EntryList getKeysRangeQuery(final StaticBuffer hashKey, final KeySliceQuery query,
-            final StoreTransaction txh)
-            throws BackendException {
+            final StoreTransaction txh) {
 
-		IgniteEntryBuilder builder = new IgniteEntryBuilder();		
+		IgniteEntryBuilder builder = new IgniteEntryBuilder();
 		builder.hashKey(hashKey);
 
 		builder.rangeKeyStart(query.getSliceStart());
@@ -107,8 +106,7 @@ public class IgniteStore implements KeyColumnValueStore {
 	}
    	
 	@Override
-	public Map<StaticBuffer, EntryList> getSlice(List<StaticBuffer> keys, SliceQuery query, StoreTransaction txh)
-			throws BackendException {
+	public Map<StaticBuffer, EntryList> getSlice(List<StaticBuffer> keys, SliceQuery query, StoreTransaction txh) {
 
 		throw new UnsupportedOperationException("[IgniteStore] getSlice based on SliceQuery is not supported.");
 	}
@@ -128,15 +126,14 @@ public class IgniteStore implements KeyColumnValueStore {
     }
 
 	@Override
-	public void acquireLock(StaticBuffer key, StaticBuffer column, StaticBuffer expectedValue, StoreTransaction txh)
-			throws BackendException {
+	public void acquireLock(StaticBuffer key, StaticBuffer column, StaticBuffer expectedValue, StoreTransaction txh) {
 
 		/* Do nothing */
 
 	}
 	
 	@Override
-	public KeyIterator getKeys(KeyRangeQuery query, StoreTransaction txh) throws BackendException {
+	public KeyIterator getKeys(KeyRangeQuery query, StoreTransaction txh) {
         throw new UnsupportedOperationException("[IgniteStore] getKeys based on KeyRangeQuery is not supported.");
         
 	}
@@ -147,11 +144,11 @@ public class IgniteStore implements KeyColumnValueStore {
 	 * fit to this column slice
 	 */
 	@Override
-	public KeyIterator getKeys(SliceQuery query, StoreTransaction txh) throws BackendException {
+	public KeyIterator getKeys(SliceQuery query, StoreTransaction txh) {
 		/*
 		 * The Ignite entry builder is used to transform provided [StaticBuffer] 
 		 * range keys (columns) into a [Hex String] representation as this format
-		 * can be orderd regularily
+		 * can be ordered regularly
 		 */
 		IgniteEntryBuilder builder = new IgniteEntryBuilder();	
 
@@ -167,7 +164,7 @@ public class IgniteStore implements KeyColumnValueStore {
  
        for (Map.Entry<StaticBuffer, KCVMutation> entry : mutationMap.entrySet()) {
 
-        		final StaticBuffer hashKey = entry.getKey();
+			final StaticBuffer hashKey = entry.getKey();
             final KCVMutation mutation = entry.getValue();
 
             /* Filter out deletions that are also added */

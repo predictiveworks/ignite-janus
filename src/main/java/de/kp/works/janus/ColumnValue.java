@@ -1,4 +1,4 @@
-package de.kp.works;
+package de.kp.works.janus;
 
 /*
  * Copyright (c) 2019 Dr. Krusche & Partner PartG. All rights reserved.
@@ -19,37 +19,21 @@ package de.kp.works;
  * 
  */
 
-import java.nio.ByteBuffer;
+import org.janusgraph.diskstorage.StaticBuffer;
 
-public class IgniteValue {
+public class ColumnValue {
 
-	private Integer i = -1;
-	private String s;
-	
-	private ByteBuffer b;
+	public String column;
 
-	public IgniteValue(Integer i) {
-		this.i = i;
-	}
-	
-	public IgniteValue(String s) {
-		this.s = s;
-	}
-	
-	public IgniteValue(ByteBuffer b) {
-		this.b = b;
-	}
-	
-	public Integer getI() {
-		return i;
-	}
+	public StaticBuffer rangeKey;
+	public StaticBuffer value;
 
-	public String getS() {
-		return s;
+	public ColumnValue(String column, StaticBuffer rangeKey, StaticBuffer value) {
+
+		this.column = column;
+
+		this.rangeKey = rangeKey;
+		this.value = value;
+
 	}
-	
-	public ByteBuffer getB() {
-		return b;
-	}
-	
 }

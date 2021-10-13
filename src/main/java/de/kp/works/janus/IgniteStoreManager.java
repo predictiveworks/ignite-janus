@@ -1,6 +1,6 @@
-package de.kp.works;
+package de.kp.works.janus;
 /*
- * Copyright (c) 2019 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,24 +18,19 @@ package de.kp.works;
  * 
  */
 
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import com.google.common.base.Preconditions;
+import de.kp.works.ignite.IgniteClient;
+import de.kp.works.ignite.IgniteContext;
 import org.apache.ignite.Ignite;
-import org.janusgraph.diskstorage.BackendException;
 import org.janusgraph.diskstorage.BaseTransactionConfig;
 import org.janusgraph.diskstorage.StaticBuffer;
 import org.janusgraph.diskstorage.StoreMetaData.Container;
 import org.janusgraph.diskstorage.configuration.Configuration;
-import org.janusgraph.diskstorage.keycolumnvalue.KCVMutation;
-import org.janusgraph.diskstorage.keycolumnvalue.KeyColumnValueStoreManager;
-import org.janusgraph.diskstorage.keycolumnvalue.KeyRange;
-import org.janusgraph.diskstorage.keycolumnvalue.StandardStoreFeatures;
-import org.janusgraph.diskstorage.keycolumnvalue.StoreFeatures;
-import org.janusgraph.diskstorage.keycolumnvalue.StoreTransaction;
-import org.janusgraph.graphdb.configuration.GraphDatabaseConfiguration;
+import org.janusgraph.diskstorage.keycolumnvalue.*;
 
-import com.google.common.base.Preconditions;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class IgniteStoreManager implements KeyColumnValueStoreManager {
 	/*
@@ -47,8 +42,8 @@ public class IgniteStoreManager implements KeyColumnValueStoreManager {
      * Reference to Apache Ignite that is transferred to the key value
      * store to enable cache operations
      */
-    private Ignite ignite = IgniteContext.getInstance().getIgnite();
-    private IgniteClient database = new IgniteClient(ignite);
+    private final Ignite ignite = IgniteContext.getInstance().getIgnite();
+    private final IgniteClient database = new IgniteClient(ignite);
 
     /*
      * JanusGraph leverages multiple stores to manage and persist
@@ -64,21 +59,31 @@ public class IgniteStoreManager implements KeyColumnValueStoreManager {
          * where to introduce customized features
          */
 		features = new StandardStoreFeatures.Builder()
+				.keyConsistent(configuration)
+				.persists(true)
+				/*
+				 * If this flag is set to `false`, JanusGraph with do this
+				 * via [ExpectedValueCheckingStoreManager], which is less
+				 * effective
+				 */
+				.locking(true)
+				.optimisticLocking(true)
 				/*
 				 * This indicates that we do not support key range queries;
 				 * see Ignite key value store
 				 */
                 .keyOrdered(false)
+				.distributed(true)
+				.multiQuery(true)
+				.batchMutation(true)
+				.localKeyPartition(false)
 				/*
 				 * Unordered scan also specify that key range queries are
-				 * not supported (see ignite key value store
+				 * not supported (see ignite key value store)
 				 */
                 .orderedScan(false)
                 .unorderedScan(true)
-                .persists(true)
-                .optimisticLocking(true)
-                .keyConsistent(GraphDatabaseConfiguration.buildGraphConfiguration())
-                .build();
+			 	.build();
 		
 		/*
 		 * Initialize stores
@@ -87,12 +92,11 @@ public class IgniteStoreManager implements KeyColumnValueStoreManager {
 
 	}
 
-	public StoreTransaction beginTransaction(BaseTransactionConfig config) throws BackendException {
-		final IgniteStoreTransaction txh = new IgniteStoreTransaction(config);
-		return txh;
+	public StoreTransaction beginTransaction(BaseTransactionConfig config) {
+		return new IgniteStoreTransaction(config);
 	}
 
-	public void close() throws BackendException {
+	public void close() {
 
 		for (IgniteStore store : stores.values()) {
             store.close();
@@ -102,7 +106,7 @@ public class IgniteStoreManager implements KeyColumnValueStoreManager {
 		
 	}
 
-	public void clearStorage() throws BackendException {
+	public void clearStorage() {
 
 		for (IgniteStore store : stores.values()) {
             store.clear();
@@ -112,7 +116,7 @@ public class IgniteStoreManager implements KeyColumnValueStoreManager {
 		
 	}
 
-	public boolean exists() throws BackendException {
+	public boolean exists() {
 		return !stores.isEmpty();
 	}
 
@@ -124,22 +128,21 @@ public class IgniteStoreManager implements KeyColumnValueStoreManager {
 		return toString();
 	}
 
-	public List<KeyRange> getLocalKeyPartition() throws BackendException {
+	public List<KeyRange> getLocalKeyPartition() {
         throw new UnsupportedOperationException(" Get local key partition.");
 	}
 
-	public IgniteStore openDatabase(String name) throws BackendException {
+	public IgniteStore openDatabase(String name) {
 		return getStore(name);
 	}
 
 	@Override
-	public IgniteStore openDatabase(String name, Container metaData) throws BackendException {
+	public IgniteStore openDatabase(String name, Container metaData) {
 		return getStore(name);
 	}
 
 	@Override
-	public void mutateMany(Map<String, Map<StaticBuffer, KCVMutation>> mutations, StoreTransaction txh)
-			throws BackendException {
+	public void mutateMany(Map<String, Map<StaticBuffer, KCVMutation>> mutations, StoreTransaction txh) {
         
 		/*
 		 * We divide mutation operations by the affected key value store

@@ -1,7 +1,6 @@
-package de.kp.works;
-
+package de.kp.works.janus;
 /*
- * Copyright (c) 2019 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -19,14 +18,13 @@ package de.kp.works;
  * 
  */
 
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-
 import org.janusgraph.diskstorage.Entry;
 import org.janusgraph.diskstorage.StaticBuffer;
 import org.janusgraph.diskstorage.keycolumnvalue.KeyIterator;
 import org.janusgraph.diskstorage.util.RecordIterator;
+
+import java.util.Iterator;
+import java.util.List;
 
 public class IgniteKeyIterator implements KeyIterator {
 
@@ -44,17 +42,16 @@ public class IgniteKeyIterator implements KeyIterator {
 	@Override
 	public StaticBuffer next() {
 		/*
-		 * The key iterator provides hash keys that are from a column slice request
+		 * The key iterator provides hash keys that
+		 * are from a column slice request
 		 */
 		Entry entry = iterator.next();
-
-		StaticBuffer hashKey = entry.getColumn();
-		return hashKey;
+		return entry.getColumn();
 
 	}
 
 	@Override
-	public void close() throws IOException {
+	public void close() {
 	}
 
 	@Override

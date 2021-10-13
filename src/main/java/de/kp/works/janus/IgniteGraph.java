@@ -1,6 +1,6 @@
-package de.kp.works;
+package de.kp.works.janus;
 /*
- * Copyright (c) 2019 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
+import de.kp.works.ignite.IgniteClient;
+import de.kp.works.ignite.IgniteContext;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.janusgraph.core.JanusGraph;
@@ -32,10 +34,16 @@ import org.janusgraph.core.JanusGraphFactory.Builder;
 import org.janusgraph.core.schema.JanusGraphManagement;
 
 public class IgniteGraph {
+
+	private static final String STORAGE_BACKEND = "storage.backend";
+	private static final String STORAGE_BACKEND_IMPL = "de.kp.works.janus.IgniteStoreManager";
+
+	private static final String GREMLIN_GRAPH = "gremlin.graph";
+	private static final String GREMLIN_GRAPH_IMPL = "org.janusgraph.core.JanusGraphFactory";
 	/*
 	 * The list of predefined Ignite caches that are leveraged by JanusGraph
 	 */
-	private static List<String> cacheNames = new ArrayList<String>();
+	private static final List<String> cacheNames = new ArrayList<>();
 	/*
 	 * The static reference to the Apache Ignite client; [IgniteContext] is designed
 	 * as a singleton and this call is used to initialize this client
@@ -69,9 +77,6 @@ public class IgniteGraph {
 	/**
 	 * Retrieve an instance of IgniteGraph without any externally provided
 	 * configuration options
-	 * 
-	 * @return
-	 * @throws Exception
 	 */
 	public static IgniteGraph getInstance() throws Exception {
 		return getInstance(null, null);
@@ -86,8 +91,8 @@ public class IgniteGraph {
 			/*
 			 * Minimal configuration to make sure that the Apache Ignite backend is used
 			 */
-			janusConfig.setProperty("storage.backend", "de.kp.works.IgniteStoreManager");
-			janusConfig.setProperty("gremlin.graph", "org.janusgraph.core.JanusGraphFactory");
+			janusConfig.setProperty(STORAGE_BACKEND, STORAGE_BACKEND_IMPL);
+			janusConfig.setProperty(GREMLIN_GRAPH, GREMLIN_GRAPH_IMPL);
 
 			janusConfig.setProperty("storage.hostname", "localhost");
 
@@ -128,7 +133,7 @@ public class IgniteGraph {
 			Class<?> propertyType = field.getValue();
 
 			/* Define a certain property */
-			if (management.containsPropertyKey(propertyName) == false) {
+			if (!management.containsPropertyKey(propertyName)) {
 				management.makePropertyKey(propertyName).dataType(propertyType).make();
 			}
 			

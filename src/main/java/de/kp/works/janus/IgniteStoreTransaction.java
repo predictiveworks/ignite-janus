@@ -1,7 +1,6 @@
-package de.kp.works;
-
+package de.kp.works.janus;
 /*
- * Copyright (c) 2019 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -20,24 +19,25 @@ package de.kp.works;
  */
 
 import org.janusgraph.diskstorage.BackendException;
+import org.janusgraph.diskstorage.BaseTransactionConfig;
+import org.janusgraph.diskstorage.common.AbstractStoreTransaction;
+/*
+ * This class is introduced for future (additional) transaction support
+ */
+public class IgniteStoreTransaction extends AbstractStoreTransaction {
 
-public class BackendRuntimeException extends RuntimeException {
+	public IgniteStoreTransaction(BaseTransactionConfig config) {
+		super(config);
+	}
 
-    private static final long serialVersionUID = 6184087040805925812L;
+	@Override
+	public void commit() throws BackendException {
+		super.commit();
+	}
 
-    BackendRuntimeException(final String str) {
-        super(str);
-    }
-    public BackendRuntimeException(final BackendException e) {
-        super(e);
-    }
-
-    public BackendException getBackendException() {
-        final Throwable throwable = super.getCause();
-        if (throwable instanceof BackendException) {
-            return (BackendException) throwable;
-        }
-        return null;
-    }
+	@Override
+	public void rollback() throws BackendException {
+		super.rollback();
+	}
 
 }

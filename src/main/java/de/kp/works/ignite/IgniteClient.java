@@ -1,7 +1,7 @@
-package de.kp.works;
+package de.kp.works.ignite;
 
 /*
- * Copyright (c) 2019 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -27,6 +27,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import de.kp.works.janus.AbstractEntryBuilder;
+import de.kp.works.janus.IgniteCacheEntry;
+import de.kp.works.janus.IgniteKeyIterator;
+import de.kp.works.janus.IgniteValue;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -174,9 +178,9 @@ public class IgniteClient extends AbstractEntryBuilder {
 			if (results.isEmpty())
 				return Collections.emptyList();
 			/*
-			 * Extract columns and stort
+			 * Extract columns and start
 			 */
-			List<Entry> entries = results.stream().map(result -> {
+			return results.stream().map(result -> {
 
 				String colName = (String) result.get(1);
 				StaticBuffer rangeKey = decodeRangeKey(colName);
@@ -195,16 +199,12 @@ public class IgniteClient extends AbstractEntryBuilder {
 
 			}).collect(Collectors.toList());
 
-			return entries;
-
 		} catch (Exception e) {
 
 			log.error(String.format("[IgniteClient] getColumnRange failed with: %s", e.getLocalizedMessage()));
-
 			tx.rollback();
 
-			List<Entry> entries = Collections.emptyList();
-			return entries;
+			return Collections.emptyList();
 
 		}
 
@@ -238,7 +238,6 @@ public class IgniteClient extends AbstractEntryBuilder {
 		} catch (Exception e) {
 
 			log.error(String.format("[IgniteClient] putAll failed with: %s", e.getLocalizedMessage()));
-
 			tx.rollback();
 
 		}
@@ -253,50 +252,39 @@ public class IgniteClient extends AbstractEntryBuilder {
 		Transaction tx = ignite.transactions().txStart();
 
 		try {
-
-			IgniteCache<String, BinaryObject> prj = cache;
 			/*
 			 * The entries specify a single hash key (row) and a list of range keys (column
 			 * names); to delete the respective cache entries, we have to retrieve their
 			 * keys and after that remove the entries
-			 */
-			/*
+			 *
 			 * The hash key is extracted from the first entry as is it always the same for
 			 * all entries
+			 *
 			 */
 			String hashKey = entries.get(0).getHashKey();
 
-			List<String> rangeKeys = entries.stream().map(entry -> {
-				return "'" + entry.getRangeKey() + "'";
-
-			}).collect(Collectors.toList());
+			List<String> rangeKeys = entries.stream()
+					.map(entry -> "'" + entry.getRangeKey() + "'").collect(Collectors.toList());
 
 			String inExpr = String.join(",", rangeKeys);
-
-			StringBuffer sb = new StringBuffer();
-			sb.append("select _key from " + cache.getName() + " where HASH_KEY = '" + hashKey + "' and RANGE_KEY in ("
-					+ inExpr + ")");
-
-			String sql = sb.toString();
+			String sql = "select _key from " + cache.getName() + " where HASH_KEY = '" + hashKey + "' and RANGE_KEY in ("
+					+ inExpr + ")";
 
 			SqlFieldsQuery query = new SqlFieldsQuery(sql);
-			List<List<?>> results = prj.query(query).getAll();
+			List<List<?>> results = cache.query(query).getAll();
 
 			if (results.isEmpty())
 				return;
 
-			List<String> keys = results.stream().map(items -> {
-				return (String) items.get(0);
-			}).collect(Collectors.toList());
+			List<String> keys = results.stream()
+					.map(items -> (String) items.get(0)).collect(Collectors.toList());
 
-			prj.removeAll(new HashSet<String>(keys));
-
+			cache.removeAll(new HashSet<>(keys));
 			tx.commit();
 
 		} catch (Exception e) {
 
 			log.error(String.format("[IgniteClient] removeAll failed with: %s", e.getLocalizedMessage()));
-
 			tx.rollback();
 
 		}
@@ -326,17 +314,13 @@ public class IgniteClient extends AbstractEntryBuilder {
 		 */
 		if (ignite == null)
 			return null;
-		Boolean exists = ignite.cacheNames().contains(name);
+		boolean exists = ignite.cacheNames().contains(name);
 		if (exists)
 			return ignite.cache(name);
 
 		else
 			return createCache(name);
 
-	}
-
-	public Ignite getIgnite() {
-		return ignite;
 	}
 
 	private IgniteCache<String, BinaryObject> createCache(String cacheName) {
@@ -346,9 +330,7 @@ public class IgniteClient extends AbstractEntryBuilder {
 	private IgniteCache<String, BinaryObject> createCache(String cacheName, CacheMode cacheMode) {
 
 		CacheConfiguration<String, BinaryObject> cfg = createCacheCfg(cacheName, cacheMode);
-		IgniteCache<String, BinaryObject> cache = ignite.createCache(cfg);// ;.withKeepBinary();
-
-		return cache;
+		return ignite.createCache(cfg);// ;.withKeepBinary();
 
 	}
 
@@ -359,13 +341,13 @@ public class IgniteClient extends AbstractEntryBuilder {
 		 */
 		QueryEntity qe = buildQueryEntity(table);
 
-		List<QueryEntity> qes = new java.util.ArrayList<QueryEntity>();
+		List<QueryEntity> qes = new java.util.ArrayList<>();
 		qes.add(qe);
 		/*
 		 * Specify Apache Ignite cache configuration; it is important to leverage
 		 * 'BinaryObject' as well as 'setStoreKeepBinary'
 		 */
-		CacheConfiguration<String, BinaryObject> cfg = new CacheConfiguration<String, BinaryObject>();
+		CacheConfiguration<String, BinaryObject> cfg = new CacheConfiguration<>();
 		cfg.setName(table);
 
 		cfg.setStoreKeepBinary(false);
@@ -395,7 +377,7 @@ public class IgniteClient extends AbstractEntryBuilder {
 		 * Define fields for the Apache Ignite cache that is used as one of the data
 		 * backends of JanusGraph
 		 */
-		LinkedHashMap<String, String> fields = new LinkedHashMap<String, String>();
+		LinkedHashMap<String, String> fields = new LinkedHashMap<>();
 		/*
 		 * The hash key used by JanusGraph to identify an equivalent of a data row
 		 */

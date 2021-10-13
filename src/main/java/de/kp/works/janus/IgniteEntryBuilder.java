@@ -1,7 +1,6 @@
-package de.kp.works;
-
+package de.kp.works.janus;
 /*
- * Copyright (c) 2019 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -36,9 +35,9 @@ public class IgniteEntryBuilder extends AbstractEntryBuilder {
 
     public IgniteEntryBuilder hashKey(final StaticBuffer hashKey) {
     
-    		this.hk = hashKey;
-    	
-    		entry.put(HASH_KEY, encodeRowKeyAsIgniteValue(hashKey));
+        this.hk = hashKey;
+        entry.put(HASH_KEY, encodeRowKeyAsIgniteValue(hashKey));
+
         return this;
 
     }
@@ -76,12 +75,11 @@ public class IgniteEntryBuilder extends AbstractEntryBuilder {
 	/** VALUE SUPPORT **/
 	
     public IgniteEntryBuilder value(final StaticBuffer value) {
-
 		/*
-    		 * Encode the provided value as [ByteBuffer] as the respective
-    		 * value can be directly decoded into a [StaticBuffer]
-    		 */
-    		entry.put(BYTE_BUFFER, encodeValueAsIgniteValue(value));
+         * Encode the provided value as [ByteBuffer] as the respective
+         * value can be directly decoded into a [StaticBuffer]
+         */
+        entry.put(BYTE_BUFFER, encodeValueAsIgniteValue(value));
         return this;
 
     }

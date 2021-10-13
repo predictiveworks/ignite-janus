@@ -1,7 +1,6 @@
-package de.kp.works;
-
+package de.kp.works.ignite;
 /*
- * Copyright (c) 2019 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -29,17 +28,15 @@ public class IgniteContext {
      * store to enable cache operations
      */
     private final Ignite ignite;
-	private final IgniteConfiguration config;
-	
+
     private static IgniteContext instance;
     
     private IgniteContext(IgniteConfiguration config){
 
-    		this.config = config;
-    		if (this.config == null) ignite = Ignition.start();
-    		else {
-    			ignite = Ignition.getOrStart(config);
-    		}
+        if (config == null) ignite = Ignition.start();
+        else {
+            ignite = Ignition.getOrStart(config);
+        }
     }
 
     public static IgniteContext getInstance() {
@@ -54,8 +51,5 @@ public class IgniteContext {
     public Ignite getIgnite() {
     		return ignite;
     }
-    
-    public IgniteConfiguration getConfig() {
-    		return config;
-    }
+
 }

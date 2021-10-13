@@ -3,7 +3,7 @@
   	<modelVersion>4.0.0</modelVersion>
   	<groupId>de.kp.works</groupId>
   	<artifactId>ignite-janus</artifactId>
-  	<version>0.4.0</version>
+  	<version>0.5.3</version>
 
   	<properties>
 
@@ -11,17 +11,19 @@
     		<maven.compiler.target>1.8</maven.compiler.target>
     		<encoding>UTF-8</encoding>
 
-		<ignite.version>2.7.6</ignite.version>
-		<janus.version>0.4.0</janus.version>
+		<ignite.version>2.8.1</ignite.version>
+		<janus.version>0.5.3</janus.version>
 
 	</properties>
 
 	<dependencies>
-		<!-- JanusGraph dependencies -->
+
+		<!-- JANUSGRAPH
+		-->
 		<dependency>
-    			<groupId>org.janusgraph</groupId>
-    			<artifactId>janusgraph-core</artifactId>
-    			<version>${janus.version}</version>
+			<groupId>org.janusgraph</groupId>
+			<artifactId>janusgraph-core</artifactId>
+			<version>${janus.version}</version>
 		</dependency>
 
         <dependency>
@@ -31,13 +33,14 @@
             <scope>test</scope>
         </dependency>
 
+		<!-- APACHE IGNITE
+		-->
 		<dependency>
 		    <groupId>org.apache.ignite</groupId>
 		    <artifactId>ignite-core</artifactId>
 		    <version>${ignite.version}</version>
 		</dependency>
 
-		<!-- Apache Ignite dependencies -->
 		<dependency>
 		    <groupId>org.apache.ignite</groupId>
 		    <artifactId>ignite-indexing</artifactId>
@@ -51,5 +54,5 @@
 		<name>Dr. Krusche &amp; Partner PartG</name>
 		<url>https://www.dr-kruscheundpartner.de</url>
 	</organization>
-	<description>An Apache Ignite backend for JanusGraph v0.4.0</description>
+	<description>An Apache Ignite backend for JanusGraph v0.5.3</description>
 </project>

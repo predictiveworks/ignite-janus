@@ -1,5 +1,4 @@
-package de.kp.works;
-
+package de.kp.works.janus;
 /*
  * Copyright (c) 2019 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,6 +17,9 @@ package de.kp.works;
  * @author Stefan Krusche, Dr. Krusche & Partner PartG
  * 
  */
+
+import de.kp.works.janus.AbstractEntryBuilder;
+import de.kp.works.janus.IgniteValue;
 
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
